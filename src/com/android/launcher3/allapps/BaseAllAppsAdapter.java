@@ -43,6 +43,7 @@ import com.android.launcher3.R;
 import com.android.launcher3.allapps.search.SearchAdapterProvider;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.popup.PopupContainerWithArrow;
+import com.android.launcher3.secondarydisplay.SecondaryDisplayLauncher;
 import com.android.launcher3.touch.CustomActionsListener;
 import com.android.launcher3.views.ActivityContext;
 
@@ -244,7 +245,11 @@ public abstract class BaseAllAppsAdapter
                 });
                 return new ViewHolder(icon);
             case VIEW_TYPE_EMPTY_SEARCH:
-                return new ViewHolder(mLayoutInflater.inflate(R.layout.all_apps_empty_search,
+                return new ViewHolder(mLayoutInflater.inflate(
+                        mActivityContext instanceof SecondaryDisplayLauncher sdl
+                                && sdl.isOnlyAppDrawer()
+                                ? R.layout.all_apps_empty_search_workspace
+                                : R.layout.all_apps_empty_search,
                         parent, false));
             case VIEW_TYPE_ALL_APPS_DIVIDER, VIEW_TYPE_PRIVATE_SPACE_SYS_APPS_DIVIDER:
                 return new ViewHolder(mLayoutInflater.inflate(
@@ -357,8 +362,15 @@ public abstract class BaseAllAppsAdapter
     }
 
     private BubbleTextView getIconOnCreateSetup(ViewGroup parent) {
-        int layout = mActivityContext.getDeviceProfile().inv.enableTwoLinesInAllApps
-                ? R.layout.all_apps_icon_twoline : R.layout.all_apps_icon;
+        boolean twoLines = mActivityContext.getDeviceProfile().inv.enableTwoLinesInAllApps;
+        int layout;
+        if (mActivityContext instanceof SecondaryDisplayLauncher sdl && sdl.isOnlyAppDrawer()) {
+            layout = twoLines
+                    ? R.layout.all_apps_icon_workspace_twoline
+                    : R.layout.all_apps_icon_workspace;
+        } else {
+            layout = twoLines ? R.layout.all_apps_icon_twoline : R.layout.all_apps_icon;
+        }
         BubbleTextView icon = (BubbleTextView) mLayoutInflater.inflate(
                 layout, parent, false);
         icon.setLongPressTimeoutFactor(1f);
